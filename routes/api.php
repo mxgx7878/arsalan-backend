@@ -5,6 +5,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\PartyController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -35,6 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/status', [VehicleController::class, 'updateStatus']);
         Route::delete('/{id}', [VehicleController::class, 'destroy']);
     });
-
+    Route::prefix('parties')->group(function () {
+        Route::get('/', [PartyController::class, 'index']);
+        Route::post('/', [PartyController::class, 'store']);
+        Route::get('/{id}', [PartyController::class, 'show']);
+        Route::put('/{id}', [PartyController::class, 'update']);
+        Route::patch('/{id}/status', [PartyController::class, 'updateStatus']);
+        Route::delete('/{id}', [PartyController::class, 'destroy']);
+    });
     
 });
