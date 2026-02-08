@@ -4,7 +4,7 @@
 // ============================================================================
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-
+use App\Http\Controllers\Api\VehicleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -27,4 +27,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Your other protected routes will go here
+    Route::prefix('vehicles')->group(function () {
+        Route::get('/', [VehicleController::class, 'index']);
+        Route::post('/', [VehicleController::class, 'store']);
+        Route::get('/{id}', [VehicleController::class, 'show']);
+        Route::put('/{id}', [VehicleController::class, 'update']);
+        Route::patch('/{id}/status', [VehicleController::class, 'updateStatus']);
+        Route::delete('/{id}', [VehicleController::class, 'destroy']);
+    });
+
+    
 });
