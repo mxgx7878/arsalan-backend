@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\Api\PartyController;
 use App\Http\Controllers\Api\PartnerController;
-// dd('here');
+use App\Http\Controllers\Api\RideController;
+use App\Http\Controllers\Api\RideExpenseController;
+use App\Http\Controllers\Api\InvoiceController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -53,5 +55,38 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [PartnerController::class, 'update']);
         Route::patch('/{id}/status', [PartnerController::class, 'updateStatus']);
         Route::delete('/{id}', [PartnerController::class, 'destroy']);
+    });
+    // Rides
+    Route::prefix('rides')->group(function () {
+        Route::get('/statistics', [RideController::class, 'statistics']);
+        Route::get('/', [RideController::class, 'index']);
+        Route::post('/', [RideController::class, 'store']);
+        Route::get('/{id}', [RideController::class, 'show']);
+        Route::put('/{id}', [RideController::class, 'update']);
+        Route::delete('/{id}', [RideController::class, 'destroy']);
+        Route::put('/{id}/complete', [RideController::class, 'markAsCompleted']);
+        
+        // Nested expenses
+        Route::get('/{rideId}/expenses', [RideExpenseController::class, 'getRideExpenses']);
+        Route::post('/{rideId}/expenses', [RideExpenseController::class, 'store']);
+    });
+    
+    // Expenses
+    Route::prefix('expenses')->group(function () {
+        Route::get('/statistics', [RideExpenseController::class, 'statistics']);
+        Route::get('/{id}', [RideExpenseController::class, 'show']);
+        Route::put('/{id}', [RideExpenseController::class, 'update']);
+        Route::delete('/{id}', [RideExpenseController::class, 'destroy']);
+    });
+
+    // Invoices
+    Route::prefix('invoices')->group(function () {
+        Route::get('/statistics', [InvoiceController::class, 'statistics']);
+        Route::get('/', [InvoiceController::class, 'index']);
+        Route::post('/', [InvoiceController::class, 'store']);
+        Route::get('/{id}', [InvoiceController::class, 'show']);
+        Route::put('/{id}', [InvoiceController::class, 'update']);
+        Route::delete('/{id}', [InvoiceController::class, 'destroy']);
+        Route::put('/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid']);
     });
 });
