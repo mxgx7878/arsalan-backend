@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -17,21 +18,29 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        // Validate the request data using Validator facade
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
             'phone' => 'nullable|string|max:20',
         ]);
 
+        // If validation fails, return a JSON response with error details
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        // Create user
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $validated['password'], // Auto-hashed by 'hashed' cast
-            'phone' => $validated['phone'] ?? null,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone ?? null,
             'is_active' => true,
         ]);
 
+        // Generate token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -50,19 +59,28 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
+        // Validate the request data using Validator facade
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        // If validation fails, return a JSON response with error details
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
         }
 
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Check if user exists and password matches
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'error' => ['email' => ['The provided credentials are incorrect.']],
+            ], 401);
+        }
+
+        // Check if the user is active
         if (!$user->is_active) {
             return response()->json([
                 'success' => false,
@@ -92,6 +110,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // Revoke current access token
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
