@@ -1,7 +1,5 @@
 <?php
-// ============================================================================
-// app/Models/Ride.php
-// ============================================================================
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +14,8 @@ class Ride extends Model
         'start_date',
         'vehicle_id',
         'party_id',
+        'ride_type',
+        'partner_id',
         'booking_amount',
         'advance_amount',
         'is_completed',
@@ -44,6 +44,11 @@ class Ride extends Model
     public function party()
     {
         return $this->belongsTo(Party::class);
+    }
+
+    public function partner()
+    {
+        return $this->belongsTo(Partner::class);
     }
 
     public function rideExpenses()
@@ -80,6 +85,16 @@ class Ride extends Model
     public function scopePending($query)
     {
         return $query->where('is_completed', false);
+    }
+
+    public function scopePersonal($query)
+    {
+        return $query->where('ride_type', 'personal');
+    }
+
+    public function scopePartner($query)
+    {
+        return $query->where('ride_type', 'partner');
     }
 
     public function scopeDateRange($query, $startDate, $endDate)

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\Api\PartyController;
+use App\Http\Controllers\Api\PartnerController;
+// dd('here');
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -44,5 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/status', [PartyController::class, 'updateStatus']);
         Route::delete('/{id}', [PartyController::class, 'destroy']);
     });
-    
+    Route::prefix('partners')->group(function () {
+        Route::get('/', [PartnerController::class, 'index']);
+        Route::post('/', [PartnerController::class, 'store']);
+        Route::get('/{id}', [PartnerController::class, 'show']);
+        Route::put('/{id}', [PartnerController::class, 'update']);
+        Route::patch('/{id}/status', [PartnerController::class, 'updateStatus']);
+        Route::delete('/{id}', [PartnerController::class, 'destroy']);
+    });
 });
