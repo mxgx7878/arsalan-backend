@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\RideController;
 use App\Http\Controllers\Api\RideExpenseController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\CompanyExpenseController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -88,5 +89,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [InvoiceController::class, 'update']);
         Route::delete('/{id}', [InvoiceController::class, 'destroy']);
         Route::put('/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid']);
+    });
+    Route::prefix('company-expenses')->group(function () {
+        Route::get('/', [CompanyExpenseController::class, 'index']);
+        Route::post('/', [CompanyExpenseController::class, 'store']);
+        Route::get('/{id}', [CompanyExpenseController::class, 'show']);
+        Route::put('/{id}', [CompanyExpenseController::class, 'update']);
+        Route::delete('/{id}', [CompanyExpenseController::class, 'destroy']);
     });
 });
