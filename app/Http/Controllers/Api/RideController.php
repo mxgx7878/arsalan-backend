@@ -44,7 +44,8 @@ class RideController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('ride_number', 'LIKE', "%{$search}%")
-                  ->orWhere('notes', 'LIKE', "%{$search}%");
+                  ->orWhere('notes', 'LIKE', "%{$search}%")
+                  ->orWhere('route', 'LIKE', "%{$search}%"); // NEW: Added route to search
             });
         }
 
@@ -94,6 +95,7 @@ class RideController extends Controller
             'booking_amount' => 'required|numeric|min:0',
             'advance_amount' => 'nullable|numeric|min:0|lte:booking_amount',
             'notes' => 'nullable|string',
+            'route' => 'nullable|string|max:1000', // NEW: Added route validation
         ]);
 
         if ($validator->fails()) {
@@ -143,6 +145,7 @@ class RideController extends Controller
                 'advance_amount' => $request->advance_amount ?? 0,
                 'is_completed' => false,
                 'notes' => $request->notes,
+                'route' => $request->route, // NEW: Added route field
             ]);
 
             $invoice = null;
@@ -261,6 +264,7 @@ class RideController extends Controller
             'booking_amount' => 'nullable|numeric|min:0',
             'advance_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'route' => 'nullable|string|max:1000', // NEW: Added route validation
         ]);
 
         if ($validator->fails()) {
@@ -292,7 +296,8 @@ class RideController extends Controller
                 'party_id',
                 'booking_amount',
                 'advance_amount',
-                'notes'
+                'notes',
+                'route' // NEW: Added route to fillable fields
             ]));
             $ride->save();
 
