@@ -12,6 +12,7 @@ class CompanyExpense extends Model
     use HasFactory;
 
     protected $fillable = [
+        'category_id', // NEW FIELD
         'expense_date',
         'amount',
         'description',
@@ -28,17 +29,34 @@ class CompanyExpense extends Model
         ];
     }
 
+    /**
+     * RELATIONSHIP: Each company expense belongs to one category
+     */
+    public function category()
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'category_id');
+    }
+
+    /**
+     * SCOPE: Filter expenses by date range
+     */
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('expense_date', [$startDate, $endDate]);
     }
 
+    /**
+     * SCOPE: Filter expenses by specific month and year
+     */
     public function scopeMonthYear($query, $month, $year)
     {
         return $query->whereMonth('expense_date', $month)
                      ->whereYear('expense_date', $year);
     }
 
+    /**
+     * SCOPE: Calculate total amount for a given period
+     */
     public function scopeTotalForPeriod($query, $startDate, $endDate)
     {
         return $query->whereBetween('expense_date', [$startDate, $endDate])

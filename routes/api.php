@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\RideController;
 use App\Http\Controllers\Api\RideExpenseController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CompanyExpenseController;
+use App\Http\Controllers\Api\ExpenseCategoryController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -90,7 +91,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [InvoiceController::class, 'destroy']);
         Route::put('/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid']);
     });
+    Route::prefix('expense-categories')->group(function () {
+        Route::get('/', [ExpenseCategoryController::class, 'index']);
+        Route::post('/', [ExpenseCategoryController::class, 'store']);
+        Route::get('/{id}', [ExpenseCategoryController::class, 'show']);
+        Route::put('/{id}', [ExpenseCategoryController::class, 'update']);
+        Route::delete('/{id}', [ExpenseCategoryController::class, 'destroy']);
+        Route::put('/{id}/toggle-active', [ExpenseCategoryController::class, 'toggleActive']);
+    });
+
+    // ===================================================================
+    // COMPANY EXPENSES - Full CRUD with Categories
+    // ===================================================================
     Route::prefix('company-expenses')->group(function () {
+        Route::get('/statistics', [CompanyExpenseController::class, 'statistics']);
         Route::get('/', [CompanyExpenseController::class, 'index']);
         Route::post('/', [CompanyExpenseController::class, 'store']);
         Route::get('/{id}', [CompanyExpenseController::class, 'show']);
