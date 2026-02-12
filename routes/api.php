@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\RideExpenseController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CompanyExpenseController;
 use App\Http\Controllers\Api\ExpenseCategoryController;
+use App\Http\Controllers\Api\PartnerLedgerController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -110,5 +111,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CompanyExpenseController::class, 'show']);
         Route::put('/{id}', [CompanyExpenseController::class, 'update']);
         Route::delete('/{id}', [CompanyExpenseController::class, 'destroy']);
+    });
+
+    Route::prefix('partners/{partner_id}')->group(function () {
+    
+        // Get ledger entries for a partner
+        Route::get('/ledger', [PartnerLedgerController::class, 'index']);
+        
+        // Add new ledger entry
+        Route::post('/ledger', [PartnerLedgerController::class, 'store']);
+        
+        // Get specific ledger entry
+        Route::get('/ledger/{entry_id}', [PartnerLedgerController::class, 'show']);
+        
+        // Update ledger entry
+        Route::put('/ledger/{entry_id}', [PartnerLedgerController::class, 'update']);
+        
+        // Delete ledger entry
+        Route::delete('/ledger/{entry_id}', [PartnerLedgerController::class, 'destroy']);
+        
+        // Get ledger summary
+        Route::get('/ledger-summary', [PartnerLedgerController::class, 'summary']);
+        
+        // Set opening balance
+        Route::post('/ledger/opening-balance', [PartnerLedgerController::class, 'setOpeningBalance']);
     });
 });

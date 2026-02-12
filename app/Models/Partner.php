@@ -39,4 +39,40 @@ class Partner extends Model
     {
         return $query->where('is_active', false);
     }
+    public function ledgerEntries()
+    {
+        return $this->hasMany(PartnerLedgerEntry::class)
+            ->orderBy('entry_date', 'asc')
+            ->orderBy('id', 'asc');
+    }
+
+    /**
+     * Get the latest ledger entry
+     */
+    public function latestLedgerEntry()
+    {
+        return $this->hasOne(PartnerLedgerEntry::class)
+            ->latestOfMany();
+    }
+
+    /**
+     * Get opening balance entry
+     */
+    public function openingBalance()
+    {
+        return $this->hasOne(PartnerLedgerEntry::class)
+            ->oldestOfMany()
+            ->where('description', 'OPENING BALANCE');
+    }
+
+    /**
+     * Scope: With ledger summary
+     */
+    public function scopeWithLedgerSummary($query)
+    {
+        return $query->withSum('ledgerEntries as total_credit', 'credit')
+            ->withSum('ledgerEntries as total_debit', 'debit')
+            ->withCount('ledgerEntries as total_entries');
+    }
+
 }
