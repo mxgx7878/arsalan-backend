@@ -59,6 +59,7 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        // dd('yes');
         // Validate the request data using Validator facade
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',

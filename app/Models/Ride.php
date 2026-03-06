@@ -9,13 +9,6 @@ class Ride extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     * 
-     * WHAT CHANGED: Added 'route' to the fillable array
-     * WHY: To allow mass assignment of route information when creating or updating rides
-     * HOW: The route field will store route information for the ride
-     */
     protected $fillable = [
         'ride_number',
         'start_date',
@@ -28,25 +21,19 @@ class Ride extends Model
         'is_completed',
         'completed_date',
         'notes',
-        'route',  // NEW FIELD: Stores route information for the ride
+        'route',
     ];
 
-    /**
-     * The attributes that should be cast.
-     * 
-     * This defines how Laravel should automatically cast attributes
-     * when retrieving them from the database or setting them.
-     */
     protected function casts(): array
     {
         return [
-            'start_date' => 'date',
+            'start_date'     => 'date',
             'completed_date' => 'date',
             'booking_amount' => 'decimal:2',
             'advance_amount' => 'decimal:2',
-            'is_completed' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'is_completed'   => 'boolean',
+            'created_at'     => 'datetime',
+            'updated_at'     => 'datetime',
         ];
     }
 
@@ -55,7 +42,12 @@ class Ride extends Model
     // ========================================================================
 
     /**
-     * Get the vehicle associated with the ride
+     * Get the vehicle associated with the ride.
+     *
+     * WHAT: Standard belongsTo on vehicle_id
+     * WHY:  Every ride has exactly one vehicle. When ride_type is 'partner',
+     *       this vehicle will also carry a partner_id — so loading
+     *       vehicle.partner gives us the full ownership chain in one query.
      */
     public function vehicle()
     {
@@ -63,7 +55,7 @@ class Ride extends Model
     }
 
     /**
-     * Get the party (customer) associated with the ride
+     * Get the party (customer) associated with the ride.
      */
     public function party()
     {
@@ -71,7 +63,15 @@ class Ride extends Model
     }
 
     /**
-     * Get the partner associated with the ride (if ride_type is 'partner')
+     * Get the partner directly associated with the ride (ride-level FK).
+     *
+     * WHAT: Direct partner on the ride — set when ride_type === 'partner'
+     * WHY:  Allows filtering rides by partner and quick access to partner
+     *       details without going through the vehicle relationship.
+     * NOTE: vehicle.partner and this partner() should always refer to the
+     *       same partner when ride_type is 'partner'. Both are kept so that
+     *       queries like Ride::with(['partner', 'vehicle.partner']) work
+     *       cleanly and the frontend gets data from both angles.
      */
     public function partner()
     {
@@ -79,7 +79,7 @@ class Ride extends Model
     }
 
     /**
-     * Get all expenses associated with this ride
+     * Get all expenses associated with this ride.
      */
     public function rideExpenses()
     {
@@ -87,7 +87,7 @@ class Ride extends Model
     }
 
     /**
-     * Get all invoices associated with this ride
+     * Get all invoices associated with this ride.
      */
     public function invoices()
     {
@@ -99,7 +99,7 @@ class Ride extends Model
     // ========================================================================
 
     /**
-     * Calculate total amount (booking amount + all expenses)
+     * Calculate total amount (booking amount + all expenses).
      */
     public function getTotalAmountAttribute()
     {
@@ -107,7 +107,7 @@ class Ride extends Model
     }
 
     /**
-     * Calculate remaining balance (total amount - paid invoices)
+     * Calculate remaining balance (total amount - paid invoices).
      */
     public function getBalanceAmountAttribute()
     {
@@ -116,7 +116,7 @@ class Ride extends Model
     }
 
     /**
-     * Calculate total expenses for this ride
+     * Calculate total expenses for this ride.
      */
     public function getTotalExpensesAttribute()
     {
@@ -127,49 +127,31 @@ class Ride extends Model
     // QUERY SCOPES
     // ========================================================================
 
-    /**
-     * Scope: Filter only completed rides
-     */
     public function scopeCompleted($query)
     {
         return $query->where('is_completed', true);
     }
 
-    /**
-     * Scope: Filter only pending (not completed) rides
-     */
     public function scopePending($query)
     {
         return $query->where('is_completed', false);
     }
 
-    /**
-     * Scope: Filter personal rides
-     */
     public function scopePersonal($query)
     {
         return $query->where('ride_type', 'personal');
     }
 
-    /**
-     * Scope: Filter partner rides
-     */
     public function scopePartner($query)
     {
         return $query->where('ride_type', 'partner');
     }
 
-    /**
-     * Scope: Filter rides within a date range
-     */
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('start_date', [$startDate, $endDate]);
     }
 
-    /**
-     * Scope: Filter rides by specific month and year
-     */
     public function scopeMonthYear($query, $month, $year)
     {
         return $query->whereMonth('start_date', $month)

@@ -38,10 +38,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('vehicles')->group(function () {
         Route::get('/', [VehicleController::class, 'index']);
         Route::post('/', [VehicleController::class, 'store']);
+        Route::get('/partner/{partnerId}', [VehicleController::class, 'getByPartner']);
         Route::get('/{id}', [VehicleController::class, 'show']);
         Route::put('/{id}', [VehicleController::class, 'update']);
         Route::patch('/{id}/status', [VehicleController::class, 'updateStatus']);
         Route::delete('/{id}', [VehicleController::class, 'destroy']);
+     
     });
     Route::prefix('parties')->group(function () {
         Route::get('/', [PartyController::class, 'index']);
