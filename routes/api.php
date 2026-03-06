@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CompanyExpenseController;
 use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\PartnerLedgerController;
+use App\Http\Controllers\Api\VehicleExpenseController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -39,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [VehicleController::class, 'index']);
         Route::post('/', [VehicleController::class, 'store']);
         Route::get('/partner/{partnerId}', [VehicleController::class, 'getByPartner']);
+        Route::get('/personal', [VehicleController::class, 'getPersonalVehicles']);
         Route::get('/{id}', [VehicleController::class, 'show']);
         Route::put('/{id}', [VehicleController::class, 'update']);
         Route::patch('/{id}/status', [VehicleController::class, 'updateStatus']);
@@ -113,6 +115,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CompanyExpenseController::class, 'show']);
         Route::put('/{id}', [CompanyExpenseController::class, 'update']);
         Route::delete('/{id}', [CompanyExpenseController::class, 'destroy']);
+    });
+
+    Route::prefix('vehicle-expenses')->group(function () {
+        Route::get('/statistics', [VehicleExpenseController::class, 'statistics']);
+        Route::get('/', [VehicleExpenseController::class, 'index']);
+        Route::post('/', [VehicleExpenseController::class, 'store']);
+        Route::get('/{id}', [VehicleExpenseController::class, 'show']);
+        Route::put('/{id}', [VehicleExpenseController::class, 'update']);
+        Route::delete('/{id}', [VehicleExpenseController::class, 'destroy']);
     });
 
     Route::prefix('partners/{partner_id}')->group(function () {

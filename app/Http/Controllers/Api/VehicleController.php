@@ -312,4 +312,18 @@ class VehicleController extends Controller
             ],
         ], 200);
     }
+    public function getPersonalVehicles()
+    {
+
+        $vehicles = Vehicle::where('type', 'personal')->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Personal vehicles retrieved successfully',
+            'data'    => [
+                'vehicles' => $vehicles,
+            ],
+        ], 200);
+    }
 }
