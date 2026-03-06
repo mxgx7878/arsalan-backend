@@ -22,6 +22,7 @@ class Ride extends Model
         'completed_date',
         'notes',
         'route',
+        'container_no', // New: optional container reference for logistics/shipping rides
     ];
 
     protected function casts(): array

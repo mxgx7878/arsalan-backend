@@ -57,7 +57,8 @@ class RideController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('ride_number', 'LIKE', "%{$search}%")
                   ->orWhere('notes', 'LIKE', "%{$search}%")
-                  ->orWhere('route', 'LIKE', "%{$search}%");
+                  ->orWhere('route', 'LIKE', "%{$search}%")
+                  ->orWhere('container_no', 'LIKE', "%{$search}%"); // Search by container number
             });
         }
 
@@ -102,7 +103,7 @@ class RideController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'ride_number'    => 'required|string|unique:rides,ride_number',
+            // ride_number removed — auto-generated below
             'start_date'     => 'required|date',
             'vehicle_id'     => 'required|exists:vehicles,id',
             'party_id'       => 'required|exists:parties,id',
@@ -112,6 +113,7 @@ class RideController extends Controller
             'advance_amount' => 'nullable|numeric|min:0|lte:booking_amount',
             'notes'          => 'nullable|string',
             'route'          => 'nullable|string|max:1000',
+            'container_no'   => 'nullable|string|max:100', // New optional container field
         ]);
 
         if ($validator->fails()) {
@@ -172,8 +174,36 @@ class RideController extends Controller
         DB::beginTransaction();
 
         try {
+            /**
+             * WHAT: Auto-generate a unique ride number using lockForUpdate()
+             * WHY:  ride_number must be unique and sequential. Without a lock,
+             *       two concurrent requests could read the same last sequence
+             *       and produce a duplicate. lockForUpdate() serialises access
+             *       at the DB level — the second request waits until the first
+             *       commits before reading the latest number.
+             *
+             * FORMAT: RDE-YYYYMMDD-XXXX
+             *   RDE       — fixed prefix to namespace all rides
+             *   YYYYMMDD  — today's date, makes numbers human-readable & sortable
+             *   XXXX      — zero-padded 4-digit daily sequence (resets each day)
+             *
+             * EXAMPLE: RDE-20260307-0001, RDE-20260307-0002, RDE-20260308-0001
+             */
+            $today    = now()->format('Ymd');
+            $prefix   = "RDE-{$today}-";
+            $lastRide = Ride::where('ride_number', 'LIKE', "{$prefix}%")
+                ->lockForUpdate()
+                ->orderBy('ride_number', 'desc')
+                ->first();
+
+            $nextSequence = $lastRide
+                ? ((int) substr($lastRide->ride_number, -4)) + 1
+                : 1;
+
+            $rideNumber = $prefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+
             $ride = Ride::create([
-                'ride_number'    => $request->ride_number,
+                'ride_number'    => $rideNumber,
                 'start_date'     => $request->start_date,
                 'vehicle_id'     => $request->vehicle_id,
                 'party_id'       => $request->party_id,
@@ -184,9 +214,10 @@ class RideController extends Controller
                 'is_completed'   => false,
                 'notes'          => $request->notes,
                 'route'          => $request->route,
+                'container_no'   => $request->container_no, // New field
             ]);
 
-            $invoice      = null;
+            $invoice       = null;
             $advanceAmount = $request->advance_amount ?? 0;
 
             if ($advanceAmount > 0 && $advanceAmount <= $request->booking_amount) {
@@ -307,8 +338,13 @@ class RideController extends Controller
             ], 400);
         }
 
+        /**
+         * WHAT: ride_number excluded from update validation entirely
+         * WHY:  ride_number is auto-generated on creation and is a system
+         *       identifier — it must never be manually overwritten after the
+         *       fact. Accepting it here would let clients corrupt traceability.
+         */
         $validator = Validator::make($request->all(), [
-            'ride_number'    => ['nullable', 'string', Rule::unique('rides', 'ride_number')->ignore($ride->id)],
             'start_date'     => 'nullable|date',
             'vehicle_id'     => 'nullable|exists:vehicles,id',
             'party_id'       => 'nullable|exists:parties,id',
@@ -316,6 +352,7 @@ class RideController extends Controller
             'advance_amount' => 'nullable|numeric|min:0',
             'notes'          => 'nullable|string',
             'route'          => 'nullable|string|max:1000',
+            'container_no'   => 'nullable|string|max:100', // New field — updatable
         ]);
 
         if ($validator->fails()) {
@@ -376,7 +413,6 @@ class RideController extends Controller
 
         try {
             $ride->fill($request->only([
-                'ride_number',
                 'start_date',
                 'vehicle_id',
                 'party_id',
@@ -384,6 +420,7 @@ class RideController extends Controller
                 'advance_amount',
                 'notes',
                 'route',
+                'container_no', // New field included in fill
             ]));
             $ride->save();
 
@@ -519,12 +556,12 @@ class RideController extends Controller
                     'ride'              => $ride,
                     'balance_invoice'   => $balanceInvoice,
                     'financial_summary' => [
-                        'booking_amount'  => $ride->booking_amount,
-                        'total_expenses'  => $expenses->sum('expense_amount'),
-                        'total_amount'    => $totalAmount,
-                        'total_paid'      => $invoices->where('payment_status', 'paid')->sum('amount'),
+                        'booking_amount'    => $ride->booking_amount,
+                        'total_expenses'    => $expenses->sum('expense_amount'),
+                        'total_amount'      => $totalAmount,
+                        'total_paid'        => $invoices->where('payment_status', 'paid')->sum('amount'),
                         'balance_remaining' => $balanceAmount,
-                        'profit'          => $ride->booking_amount - $expenses->sum('expense_amount'),
+                        'profit'            => $ride->booking_amount - $expenses->sum('expense_amount'),
                     ]
                 ]
             ], 200);
