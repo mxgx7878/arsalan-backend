@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\CompanyExpenseController;
 use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\PartnerLedgerController;
 use App\Http\Controllers\Api\VehicleExpenseController;
+use App\Http\Controllers\Api\ReportController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -148,5 +149,64 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Set opening balance
         Route::post('/ledger/opening-balance', [PartnerLedgerController::class, 'setOpeningBalance']);
+    });
+
+
+    Route::prefix('reports')->group(function () {
+ 
+        // 1. Per Vehicle Report
+        // GET /api/reports/vehicle
+        // Filters: start_date, end_date, vehicle_id
+        Route::get('/vehicle', [ReportController::class, 'vehicleReport']);
+    
+        // 2. Vehicle Monthly Report
+        // GET /api/reports/vehicle/monthly
+        // Filters: vehicle_id, year, start_date, end_date
+        Route::get('/vehicle/monthly', [ReportController::class, 'vehicleMonthlyReport']);
+    
+        // 3. Ride Report
+        // GET /api/reports/rides
+        // Filters: start_date, end_date, vehicle_id, party_id, ride_type, is_completed, per_page
+        Route::get('/rides', [ReportController::class, 'rideReport']);
+    
+        // 4. Market vs Own Vehicle Report
+        // GET /api/reports/vehicle-comparison
+        // Filters: start_date, end_date
+        Route::get('/vehicle-comparison', [ReportController::class, 'marketVsOwnReport']);
+    
+        // 5. Party / Client Report
+        // GET /api/reports/party
+        // Filters: start_date, end_date, party_id
+        Route::get('/party', [ReportController::class, 'partyReport']);
+    
+        // 6. Invoice Report
+        // GET /api/reports/invoices
+        // Filters: start_date, end_date, payment_status, party_id, per_page
+        Route::get('/invoices', [ReportController::class, 'invoiceReport']);
+    
+        // 7. Expense Report
+        // GET /api/reports/expenses
+        // Filters: start_date, end_date, vehicle_id, expense_type, per_page
+        Route::get('/expenses', [ReportController::class, 'expenseReport']);
+    
+        // 8. Profit & Loss Report
+        // GET /api/reports/profit-loss
+        // Filters: start_date, end_date, granularity (daily|monthly)
+        Route::get('/profit-loss', [ReportController::class, 'profitLossReport']);
+    
+        // 9. Driver / Partner Report
+        // GET /api/reports/partner
+        // Filters: start_date, end_date, partner_id
+        Route::get('/partner', [ReportController::class, 'partnerReport']);
+    
+        // 10. Daily Summary Report
+        // GET /api/reports/daily-summary
+        // Filters: start_date (required), end_date (required)
+        Route::get('/daily-summary', [ReportController::class, 'dailySummaryReport']);
+    
+        // 11. Pending & Due Report
+        // GET /api/reports/pending-due
+        // Filters: party_id
+        Route::get('/pending-due', [ReportController::class, 'pendingDueReport']);
     });
 });

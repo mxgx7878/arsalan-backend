@@ -13,8 +13,8 @@ class PartyController extends Controller
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'per_page' => 'nullable|integer|min:1|max:100',
-            'search' => 'nullable|string|max:100',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'search' => 'nullable|string|max:200',
             'is_active' => 'nullable|boolean',
         ]);
 
